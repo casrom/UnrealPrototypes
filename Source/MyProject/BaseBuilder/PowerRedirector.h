@@ -37,7 +37,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	/* Interactable */
-	virtual void OnInteract_Implementation(UObject* TriggeredObject) override;
+	virtual void OnInteract_Implementation(UObject* TriggeredObject, UObject* Interactor) override;
 	virtual FText GetDescription() override;
 
 	bool FindAndRegisterPanelSide(FVector SidesCenter, FVector Direction);

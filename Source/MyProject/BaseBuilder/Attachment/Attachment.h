@@ -21,6 +21,7 @@ public:
 	// Sets default values for this actor's properties
 	AAttachment();
 
+	UPROPERTY()
 	ABuildItem* AttachmentParent;
 
 protected:

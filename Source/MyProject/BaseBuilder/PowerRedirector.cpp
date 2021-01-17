@@ -32,7 +32,7 @@ void APowerRedirector::Tick(float DeltaTime)
 
 }
 
-void APowerRedirector::OnInteract_Implementation(UObject* TriggeredObject) {
+void APowerRedirector::OnInteract_Implementation(UObject* TriggeredObject, UObject* Interactor) {
 	int PrevIndex = RotationIndex;
 	FRotator CurrRot = StaticVisualMesh->GetRelativeRotation();
 	FRotator NewRot = FRotator(0, CurrRot.Yaw + 90, 0);

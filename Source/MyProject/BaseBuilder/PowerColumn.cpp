@@ -6,6 +6,7 @@
 #include "Building.h"
 #include "PanelSide.h"
 #include "Panel.h"
+#include "Components/BoxComponent.h"
 
 // Sets default values
 APowerColumn::APowerColumn()
@@ -60,7 +61,7 @@ void APowerColumn::Tick(float DeltaTime)
 
 }
 
-void APowerColumn::OnInteract_Implementation(UObject* TriggeredObject) {
+void APowerColumn::OnInteract_Implementation(UObject* TriggeredObject, UObject* Interactor) {
 	FVector NewLocation = CylinderDefaultLocation;
 	FVector OldLocation = Root->GetRelativeLocation();
 	int PrevOffset = CylinderOffset;

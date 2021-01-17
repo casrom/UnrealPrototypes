@@ -67,7 +67,7 @@ void UInteractorComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 void UInteractorComponent::Interact() {
 	if (Interactable != nullptr && InteractableObject != nullptr && TriggerObject != nullptr) {
 		MPC->MainUI->InteractCrosshair();
-		Interactable->Execute_OnInteract(InteractableObject, TriggerObject);
+		Interactable->Execute_OnInteract(InteractableObject, TriggerObject, this);
 		//DEBUGMESSAGE("INTERACT\n");
 	}
 }

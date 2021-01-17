@@ -3,10 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ConnectorComponent.h"
 #include "GameFramework/Actor.h"
-#include "Components/BoxComponent.h"
-#include "BuildItem.h"
 #include "BuildItem.h"
 
 #include "Panel.generated.h"
@@ -17,6 +14,8 @@ class UPanelSide;
 class APowerColumn;
 class UEnergyStrip;
 class ABuilding;
+class UBoxComponent;
+class UConnectorComponent;
 
 UCLASS()
 class MYPROJECT_API APanel : public ABuildItem
@@ -26,7 +25,7 @@ class MYPROJECT_API APanel : public ABuildItem
 public:	
 	// Sets default values for this actor's properties
 	APanel();
-	UPROPERTY(Instanced, VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere)
 	TArray<UConnectorComponent*> ConnectionColliders;
 	
 	UPROPERTY(editAnywhere, BlueprintReadWrite)
@@ -36,8 +35,8 @@ public:
 	float FlowEfficiency = 0;
 
 
-	//UPROPERTY(EditDefaultsOnly)
-	//TArray<class UConnectorComponent*> AttachmentColliders;
+	UPROPERTY(EditDefaultsOnly)
+	TArray<class UConnectorComponent*> AttachmentColliders;
 
 
 
@@ -57,17 +56,17 @@ public:
 
 	//UPROPERTY(visibleAnywhere)
 	//TArray<class UBoxComponent*> SideColliders;
-	UPROPERTY(EditDefaultsOnly)
-	TArray<UPanelButton*> PanelButtons;
-	UPROPERTY(EditDefaultsOnly)
-	TArray<bool> PanelButtonIsVisible;
+	//UPROPERTY(EditDefaultsOnly)
+	//TArray<UPanelButton*> PanelButtons;
+	//UPROPERTY(EditDefaultsOnly)
+	//TArray<bool> PanelButtonIsVisible;
 
-	UPROPERTY(VisibleAnywhere)
-	TArray<UEnergyStrip*> PowerStrips;
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<UEnergyStrip> EnergyStripBP;
-	UPROPERTY(EditDefaultsOnly)
-	bool bHasEnergyStrips = true;
+	//UPROPERTY(VisibleAnywhere)
+	//TArray<UEnergyStrip*> PowerStrips;
+	//UPROPERTY(EditAnywhere)
+	//TSubclassOf<UEnergyStrip> EnergyStripBP;
+	//UPROPERTY(EditDefaultsOnly)
+	//bool bHasEnergyStrips = true;
 
 	UFUNCTION(BlueprintCallable)
 	void Init();
@@ -76,9 +75,10 @@ public:
 	FVector Size;
 	float Margin;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY()
 	TArray<UPanelSide*> Sides;
 
+	UPROPERTY()
 	ABuilding* Building;
 	//TMap<int, struct FPanelSet&> ConnectedPanels;
 

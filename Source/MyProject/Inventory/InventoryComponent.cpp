@@ -1,34 +1,61 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "InventoryComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "../MainPlayerController.h"
+#include "../UI/MainUI.h"
+#include "ActionBarComponent.h"
 
-// Sets default values for this component's properties
 UInventoryComponent::UInventoryComponent()
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
 
-	// ...
+	PrimaryComponentTick.bCanEverTick = false;
+
 }
 
 
-// Called when the game starts
 void UInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// ...
-	
+	AMainPlayerController* controller = Cast<AMainPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+	ActionBar = nullptr;
+	if (controller) ActionBar = controller->ActionBar;
 }
 
 
-// Called every frame
 void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
+}
+
+void UInventoryComponent::AddItem(FItemInfo NewItemInfo) {
+
+	int index = -1;
+
+	for (auto &ItemInfo : ItemList) {
+		if (ItemInfo.Name.EqualTo(NewItemInfo.Name)) {
+			ItemInfo.Count += NewItemInfo.Count;
+			if (ActionBar) {
+				index = ActionBar->FindIndexOf(ItemInfo);
+				if (index != -1) {
+					ActionBar->RegisterItem(index, ItemInfo);
+				}
+			}
+			return;
+		}
+	}
+	//add as new item
+	ItemList.Add(NewItemInfo);
+	if (ActionBar) {
+		index = ActionBar->FindNextAvailableIndex();
+		if (index != -1) {
+			ActionBar->RegisterItem(index, NewItemInfo);
+		}
+		
+	}
+
+
 }
 

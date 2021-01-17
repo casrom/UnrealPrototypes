@@ -5,7 +5,8 @@
 #include "BuildItem.h"
 #include "Panel.h"
 #include "Attachment/Attachment.h"
-
+#include "../UI/BuilderUI.h"
+#include "ConnectorComponent.h"
 #include "DrawDebugHelpers.h"
 
 
@@ -33,7 +34,11 @@ void UBuilderComponent::BeginPlay()
 
 	// ...
 	//Camera = Cast<UCameraComponent>(GetOwner()->GetComponentByClass(UCameraComponent::StaticClass()));
-	
+	if (BuilderUIBP != nullptr && BuilderUI == nullptr) {
+		BuilderUI = CreateWidget<UBuilderUI>(GetWorld(), BuilderUIBP);
+	}
+
+	GenerateBuildItems();
 	ActiveBuildItemIndex = 0;
 }
 
@@ -59,8 +64,9 @@ void UBuilderComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 		FHitResult Hit;
 		float RayLength = 1000;
 
-		FVector StartLocation = Camera->GetComponentLocation();
-		FVector EndLocation = StartLocation + (Camera->GetForwardVector() * RayLength);
+		FVector CameraLocation = Camera->GetComponentLocation();
+		FVector StartLocation = CameraLocation;
+		FVector EndLocation = CameraLocation + (Camera->GetForwardVector() * RayLength);
 		BuildTransform = FTransform(EndLocation);
 		BuildTransform.SetRotation(BuildRotator.Quaternion());
 		//BuildRotation = BuildItem->GetActorRotation();
@@ -69,11 +75,14 @@ void UBuilderComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 
 		bBuildable = false;
 
-		if (GetWorld()->LineTraceSingleByChannel(Hit, StartLocation, EndLocation, BuildItem->BuildItemInfo.CollisionChannel, CollisionParams)) {
-			//DEBUGMESSAGE("hit %s\n", *Hit.GetComponent()->GetAttachParent()->GetFName().ToString());
+		//if (GetWorld()->LineTraceSingleByProfile(Hit, StartLocation, EndLocation, "Builder", CollisionParams)) {
+
+		if (GetWorld()->LineTraceSingleByChannel(Hit, StartLocation, EndLocation, BuildItem->BuildItemInfo.CollisionChannel, CollisionParams)){
+			//DEBUGMESSAGE("hit %s %x\n", *Hit.GetComponent()->GetAttachParent()->GetFName().ToString(), Hit.GetComponent()->GetAttachmentRootActor()->GetUniqueID() == BuildItem->GetUniqueID());
 			//DEBUGMESSAGE("hit %s\n", *Hit.GetComponent()->GetAttachParent()->GetComponentRotation().ToString());
 			//DEBUGMESSAGE("hit %s\n", *Hit.GetComponent()->GetAttachParent()->GetComponentRotation().Quaternion().GetUpVector().ToString());
 			if (BuildItem->BuildItemInfo.BuildItemTag.MatchesTag(BuildPanelTag)) {
+				//DEBUGMESSAGE("PANEL\n");
 				if (BuildItem->BuildItemInfo.BuildItemTag.MatchesTag(BuildPanelWallTag)) {
 					//Align forward of BuildTransform with that of the panel
 					//BuildTransform.Rotator();
@@ -87,23 +96,29 @@ void UBuilderComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 			}
 			ActiveConnector = Hit.GetComponent();
 			ActiveActor = Hit.GetActor();
+			//DEBUGMESSAGE("%s - %s", *BuildItem->BuildItemInfo.BuildItemTag.ToString(), *BuildAttachmentTag.ToString());
 			if (BuildItem->BuildItemInfo.BuildItemTag.MatchesTag(BuildAttachmentTag)) {
 				UConnectorComponent* CC = Cast<UConnectorComponent>(ActiveConnector->GetAttachParent());
 				//DEBUGMESSAGE("hit %x\n", CC==NULL);
-				if (CC != NULL && BuildItem->BuildItemInfo.BuildItemTag.MatchesAny(CC->GameplayTags)) {
+				if (CC && BuildItem->BuildItemInfo.BuildItemTag.MatchesAny(CC->GameplayTags)) {
 					//DEBUGMESSAGE("hit\n");
 					bBuildable = true;
 					BuildTransform = Hit.GetComponent()->GetAttachParent()->GetComponentTransform();
 				}
 			}
 		} else if (GetWorld()->LineTraceSingleByChannel(Hit, StartLocation, EndLocation, ECollisionChannel::ECC_WorldStatic, CollisionParams)) {
+			//DEBUGMESSAGE("bBuildableAnywhere\n");
 			if (Hit.GetComponent()->GetAttachParent() != nullptr)
 				//DEBUGMESSAGE("hit %s\n", *Hit.GetComponent()->GetAttachParent()->GetFName().ToString())
-			if (BuildItem->BuildItemInfo.bBuildableAnywhere) bBuildable = true;
+			if (BuildItem->BuildItemInfo.bBuildableAnywhere) {
+				//DEBUGMESSAGE("bBuildableAnywhere\n");
+				bBuildable = true;
+			}
 			BuildTransform.SetTranslation(Hit.Location);
 			BuildTransform.SetRotation(BuildRotator.Quaternion());
 			if (BuildItem->BuildItemInfo.BuildItemTag.MatchesTag(BuildPanelFloorTag)) {
-				BuildTransform.SetTranslation(BuildTransform.GetTranslation() + FVector(0, 0, PANEL_THICKNESS/2));
+				//elevate floor if built on ground
+				//BuildTransform.SetTranslation(BuildTransform.GetTranslation() + FVector(0, 0, PANEL_THICKNESS/2));
 			}
 		}
 
@@ -114,7 +129,8 @@ void UBuilderComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 		//SnapToGrid(&BuildLocation);
 		
 		if (BuildItem->bOverlap) {
-			//DEBUGMESSAGE("OVERLAP\n");  bBuildable = false;
+			//DEBUGMESSAGE("OVERLAP\n");  
+			bBuildable = false;
 		}
 
 		if (BuildItem->BuildItemInfo.BuildItemTag.MatchesTag(BuildPanelTag)) {
@@ -153,6 +169,11 @@ void UBuilderComponent::SetCamera(UCameraComponent* _Camera) {
 
 void UBuilderComponent::NextBuildItem()
 {
+	DEBUGMESSAGE("NEXT %d", BuildItemsBP.Num())
+	if (BuilderUI != nullptr) {
+		//BuilderUI->DisplayNextItem();
+		
+	}
 	if(BuildItemsBP.Num()>0)
 		SetActiveBuildItem((ActiveBuildItemIndex + 1) % BuildItemsBP.Num());
 }
@@ -167,11 +188,13 @@ void UBuilderComponent::GenerateBuildItems() {
 	BuildItems.Empty();
 	for (auto BuildItemBP : BuildItemsBP) {
 		ABuildItem* Item = (ABuildItem*)GetWorld()->SpawnActor(BuildItemBP);
-		Item->SetActorEnableCollision(false);
+		Item->InitBuildBlueprint();
+	    Item->SetActorEnableCollision(false);
 		Item->SetActorTickEnabled(false);
 		Item->SetActorHiddenInGame(true);
 		Item->AttachToActor(GetOwner(), FAttachmentTransformRules::KeepRelativeTransform);
 		BuildItems.Add(Item);
+		BuilderUI->AddBuildItem(Item);
 	}
 }
 
@@ -180,7 +203,10 @@ void UBuilderComponent::SetActiveBuildItem(int Index, bool bForce) {
 	BuildPanel = NULL;
 	BuildAttachment = NULL;
 	if ((Index == ActiveBuildItemIndex&&!bForce) || !bActive) return;
-	if (BuildItem != NULL) BuildItem->SetActorHiddenInGame(true);
+	if (BuildItem != NULL) {
+		BuildItem->SetActorEnableCollision(false);
+		BuildItem->SetActorHiddenInGame(true);
+	}
 	BuildItem = NULL;
 	ActiveBuildItemIndex = Index;
 	if (BuildItemsBP[ActiveBuildItemIndex] != NULL) {
@@ -189,7 +215,10 @@ void UBuilderComponent::SetActiveBuildItem(int Index, bool bForce) {
 		//BuildItem = (ABuildItem*)GetWorld()->SpawnActor(BuildItemsBP[ActiveBuildItemIndex]);
 		//BuildItem = ABuildItem::SpawnBuildItemDisplay(GetWorld(), BuildItems[ActiveBuildItemIndex]);
 		if (BuildItem != NULL) {
+			//DEBUGMESSAGE("%d", ActiveBuildItemIndex);
+			BuilderUI->DisplayItem(Index);
 			BuildItem->SetActorHiddenInGame(false);
+			BuildItem->SetActorEnableCollision(true);
 			if (BuildItem->StaticVisualMesh != NULL) {
 				BuildItem->StaticVisualMesh->SetMaterial(0, BluePrintMaterial);
 				MaterialInstance = BuildItem->StaticVisualMesh->CreateDynamicMaterialInstance(0);
@@ -254,11 +283,18 @@ void UBuilderComponent::ToggleBuilder() {
 		BuildItem = NULL;
 		BuildPanel = NULL;
 		SetActive(false);
+		if (BuilderUI != nullptr) {
+			BuilderUI->RemoveFromViewport();
+		}
 	} else {
 		SetActive(true);
 		bActive = true;
 		int NewIndex = FMath::Min(ActiveBuildItemIndex, BuildItemsBP.Num()-1);
+		if (BuilderUI != nullptr) {
+			BuilderUI->AddToViewport();
+		}
 		if (BuildItemsBP.Num() > 0) SetActiveBuildItem(NewIndex, true);
+		
 	}
 }
 

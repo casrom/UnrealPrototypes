@@ -1,8 +1,5 @@
 #pragma once
 
-#include "Engine/GameEngine.h"
-#include "CoreMinimal.h"
-
 
 #define COLLISION_CONNECTOR_WALL       ECC_GameTraceChannel2
 #define COLLISION_CONNECTOR_FLOOR      ECC_GameTraceChannel4

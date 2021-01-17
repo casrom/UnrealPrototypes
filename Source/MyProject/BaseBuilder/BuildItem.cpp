@@ -4,26 +4,23 @@
 #include "BuildItem.h"
 #include "Engine/SCS_Node.h"
 #include "Globals.h"
-#include "ConnectorComponent.h"
+#include "Components/BoxComponent.h"
 
-// Sets default values
 ABuildItem::ABuildItem()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	
 	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	RootComponent = Root;
 	//StaticVisualMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticVisualMesh"));
 	//SkeletalVisualMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalVisualMesh"));
 
-	OverlapCollider = CreateDefaultSubobject<UBoxComponent>(MakeUniqueObjectName(this, UBoxComponent::StaticClass(), "OverlapCollider"));
+	OverlapCollider = CreateDefaultSubobject<UBoxComponent>(TEXT("OverlapTrigger"));
 	OverlapCollider->SetCollisionProfileName("BuildOverlap");
-	OverlapCollider->SetGenerateOverlapEvents(true);
-	OverlapCollider->ComponentTags.Add("OverlapCollider");
 	OverlapCollider->SetupAttachment(RootComponent);
 	OverlapCollider->OnComponentBeginOverlap.AddDynamic(this, &ABuildItem::OnOverlapBegin);
 	OverlapCollider->OnComponentEndOverlap.AddDynamic(this, &ABuildItem::OnOverlapEnd);
+	OverlapCollider->SetGenerateOverlapEvents(true);
 
 }
 
@@ -31,7 +28,7 @@ ABuildItem::ABuildItem()
 void ABuildItem::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 }
 
 // Called every frame
@@ -47,6 +44,17 @@ void ABuildItem::OnBuild(ABuildItem* Parent) {
 	//	OverlapCollider->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 	//}
 	bReady = true;
+}
+
+void ABuildItem::InitBuildBlueprint() {
+	if (StaticVisualMesh) {
+		StaticVisualMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+	if (SkeletalVisualMesh) {
+		SkeletalVisualMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+	//OverlapCollider is enabled by default
+
 }
 
 ABuildItem* ABuildItem::SpawnBuildItemDisplay(UWorld* InWorld, TSubclassOf<ABuildItem> BuildItemBP) {

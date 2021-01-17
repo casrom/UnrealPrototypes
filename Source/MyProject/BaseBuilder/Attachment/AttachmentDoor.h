@@ -26,19 +26,20 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     UAnimMontage* DoorAnimation;
     
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    UBoxComponent* InteractTrigger;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+    class UBoxComponent* InteractTrigger;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     bool bInteractable = true;
 
+    UPROPERTY()
     class APanel* ParentPanel;
 
     /* Build Item */
     virtual void OnBuild(ABuildItem* Parent) override;
 
     /* Interactable */
-    virtual void OnInteract_Implementation(UObject* TriggeredObject) override;
+    virtual void OnInteract_Implementation(UObject* TriggeredObject, UObject* Interactor) override;
     virtual FText GetDescription() override;
 
 };

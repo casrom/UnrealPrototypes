@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
-#include "Components/BoxComponent.h"
 #include "InteractableInterface.generated.h"
 
 // This class does not need to be modified.
@@ -25,9 +24,9 @@ class MYPROJECT_API IInteractableInterface
 public:
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interact")
-	void OnInteract(UObject* TriggeredObject);
+	void OnInteract(UObject* TriggeredObject, UObject* Interactor);
 
-	virtual void OnInteract_Implementation(UObject* TriggeredObject) = 0;
+	virtual void OnInteract_Implementation(UObject* TriggeredObject, UObject* Interactor) = 0;
 
 	virtual FText GetDescription();
 };

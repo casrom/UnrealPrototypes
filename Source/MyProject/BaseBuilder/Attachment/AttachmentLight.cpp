@@ -4,6 +4,7 @@
 #include "AttachmentLight.h"
 #include "../Building.h"
 #include "../PanelSide.h"
+#include "Components/PointLightComponent.h"
 
 AAttachmentLight::AAttachmentLight() {
     StaticVisualMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));

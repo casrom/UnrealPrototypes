@@ -7,6 +7,7 @@
 #include "MainPlayerController.generated.h"
 
 class UMainUI;
+class UActionBarComponent;
 
 /**
  * 
@@ -14,8 +15,9 @@ class UMainUI;
 UCLASS()
 class MYPROJECT_API AMainPlayerController : public APlayerController
 {
-	GENERATED_BODY()
-	
+    GENERATED_BODY()
+
+    AMainPlayerController();
 
 protected:
     UPROPERTY(EditDefaultsOnly)
@@ -24,8 +26,12 @@ protected:
 public:
     UPROPERTY(VisibleAnywhere)
     UMainUI* MainUI;
-    virtual void OnPossess(APawn* InPawn) override;
 
+    UPROPERTY(VisibleAnywhere)
+    UActionBarComponent* ActionBar;
+    
+    virtual void OnPossess(APawn* InPawn) override;
+    
 
     //virtual void UpdateRotation(float DeltaTime) override;
 

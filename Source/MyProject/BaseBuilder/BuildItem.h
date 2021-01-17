@@ -4,13 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Components/BoxComponent.h"
 
-#include "Globals.h"
 #include "GameplayTagContainer.h"
 #include "BuildItem.generated.h"
 
-class UConnectorComponent;
 
 USTRUCT(BlueprintType)
 struct FBuildItemInfo {
@@ -20,13 +17,19 @@ struct FBuildItemInfo {
 	, CollisionChannel(0)
 	{}
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FText Name;
+
 	UPROPERTY(EditAnywhere)
 	bool bBuildableAnywhere;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FGameplayTag BuildItemTag;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FRotator DefaultRotator = FRotator::ZeroRotator;
-	UPROPERTY(visibleAnywhere)
+
+	UPROPERTY(EditAnywhere)
 	TEnumAsByte<ECollisionChannel> CollisionChannel;
 
 
@@ -41,7 +44,9 @@ class MYPROJECT_API ABuildItem : public AActor
 public:	
 	// Sets default values for this actor's properties
 	ABuildItem();
-
+	
+	UPROPERTY(EditDefaultsOnly)
+	class UBoxComponent* OverlapCollider;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	class USceneComponent* Root;
@@ -50,18 +55,24 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	class USkeletalMeshComponent* SkeletalVisualMesh;
 
-	UPROPERTY(Instanced, EditDefaultsOnly)
-	UBoxComponent* OverlapCollider;
+
 
 	bool bOverlap = false;
-	UFUNCTION()
-		void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
-		void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
+	UFUNCTION()
+	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	UConnectorComponent* InUseConnector;
+	/// <summary>
+	/// Initialize the build item as a blue print item, disabling mesh colliders while enabling the overlap collider.
+	/// </summary>
+	UFUNCTION()
+	void InitBuildBlueprint();
+
+	UPROPERTY()
+	class UConnectorComponent* InUseConnector;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FBuildItemInfo BuildItemInfo;
 

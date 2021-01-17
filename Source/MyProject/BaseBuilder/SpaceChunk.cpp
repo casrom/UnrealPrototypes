@@ -84,7 +84,7 @@ void USpaceChunk::TickComponent(float DeltaTime, ELevelTick TickType, FActorComp
 				DEBUGMESSAGE("WIND\n");
 				FVector ComponentAngle = GetComponentTransform().InverseTransformPosition(Player->GetActorLocation());
 				//Player->EnableSimulatePhysics();
-				Player->GetCharacterMovement()->AddForce(NetForce.Size() * (ForceAngle*GRID_SIZE - ComponentAngle));
+				Player->GetCharacterMovement()->AddForce(NetForce.Size() * (ForceAngle*GRID_SIZE - ComponentAngle) / 5);
 
 			}
 		}
@@ -97,7 +97,7 @@ void USpaceChunk::TickComponent(float DeltaTime, ELevelTick TickType, FActorComp
 			FVector ComponentAngle = GetComponentTransform().InverseTransformPosition(MeshComponent->GetComponentLocation());
 			ComponentAngle.Normalize();
 			if (MeshComponent->IsSimulatingPhysics())
-				MeshComponent->AddForce(NetForce.Size() * (ForceAngle - ComponentAngle) * 10000);
+				MeshComponent->AddForce(NetForce.Size() * (ForceAngle - ComponentAngle) * 1000);
 		}
 	}
 

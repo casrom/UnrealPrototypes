@@ -1,27 +1,56 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Item.h"
+#include "Components/BoxComponent.h"
+#include "../Interact/InteractorComponent.h"
+#include "InventoryComponent.h"
+#include "../Macros.h"
 
-// Sets default values
+
 AItem::AItem()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
+	Info = FItemInfo();
+	/*if (Info.StaticVisualMesh) {
+		VisualMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Visual Mesh"));
+		VisualMesh->SetStaticMesh(Info.StaticVisualMesh);
+	}*/
+	VisualMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("VisualMesh"));
+	RootComponent = VisualMesh;
+	InteractTrigger = CreateDefaultSubobject<UBoxComponent>(TEXT("InteractTrigger"));
+	InteractTrigger->SetCollisionProfileName("InteractTrigger");
+	InteractTrigger->SetupAttachment(VisualMesh);
 
 }
 
-// Called when the game starts or when spawned
 void AItem::BeginPlay()
 {
+
 	Super::BeginPlay();
-	
+	Info.ItemBP = this->GetClass();
+	InteractTrigger->SetRelativeLocation(FVector::ZeroVector);
+
 }
 
-// Called every frame
 void AItem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void AItem::OnInteract_Implementation(UObject* TriggeredObject, UObject* Interactor) {
+	UInteractorComponent* InteractorC = Cast<UInteractorComponent>(Interactor);
+	UInventoryComponent* Inventory = nullptr;
+	if (InteractorC) {
+		Inventory = Cast<UInventoryComponent>(InteractorC->GetOwner()->GetComponentByClass(UInventoryComponent::StaticClass()));
+	}
+	if (Inventory) {
+		//DEBUGMESSAGE("%x", Inventory);
+		Inventory->AddItem(Info);
+		Destroy();
+	}
+}
+
+FText AItem::GetDescription() {
+	return FText::Format(NSLOCTEXT("DefaultNamespace", "PickUp", "{0} \n Pick Up (E)"), Info.Name);
 }
 

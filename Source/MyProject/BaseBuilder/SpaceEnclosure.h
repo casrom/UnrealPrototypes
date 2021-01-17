@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Globals.h"
 #include "Components/SceneComponent.h"
+#include "SpaceChunk.h"
 #include "SpaceEnclosure.generated.h"
 
 class APanel;

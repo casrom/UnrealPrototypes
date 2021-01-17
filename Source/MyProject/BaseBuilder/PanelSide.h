@@ -14,10 +14,9 @@ class APanel;
 USTRUCT(BlueprintType)
 struct FPanelSideData {
 	GENERATED_BODY()
-public:
 	UPROPERTY(VisibleAnywhere)
 	FColor Color;
-	FPanelSideData() {};
+	FPanelSideData(): Color(FColor::White) {};
 	FPanelSideData(FColor c) { Color = c; };
 };
 
@@ -31,24 +30,40 @@ public:
 	// Sets default values for this component's properties
 	UPanelSide();
 
-	UPROPERTY(VisibleAnywhere)
+	//UPROPERTY(EditDefaultsOnly)
+	//USceneComponent* Root;
+
+	UPROPERTY(EditDefaultsOnly)
 	class UBoxComponent* Collider;
+
 	UPROPERTY(VisibleAnywhere)
 	FPanelSideData Data;
+
 	UPROPERTY(VisibleAnywhere)
 	TArray<UPanelSide*> Neighbors;
+
 	TArray<int> RelativeSideIndices;
-	//UPROPERTY(VisibleAnywhere)
+
+	UPROPERTY(VisibleAnywhere)
 	USpaceChunk* SpaceChunk;
+
 	UPROPERTY(VisibleAnywhere)
 	int SideIndexOfChunk = -1;
+
+	UPROPERTY()
 	TArray<UEnergyStrip*> EnergyStrips;
+
 	UPROPERTY(VisibleAnywhere)
 	TArray<bool> PowerConnections;
 
+	UPROPERTY()
 	class UPowerNetwork* PowerNetwork;
+	
 	int ActivePowerConnectionNum = 0;
+	
 	bool DrawDebug = false;
+	
+	UPROPERTY()
 	APanel* Panel;
 
 protected:

@@ -21,7 +21,7 @@ UPanelSide::UPanelSide()
 	Neighbors.Init(nullptr, 5);
 	RelativeSideIndices.Init(-1, 4);
 
-	Collider = CreateDefaultSubobject<UBoxComponent>(MakeUniqueObjectName(this, UBoxComponent::StaticClass(), "SideCollider"));
+	Collider = CreateDefaultSubobject<UBoxComponent>(TEXT("SideCollider"));
 	Collider->SetupAttachment(this);
 	Collider->SetRelativeLocation(FVector::ZeroVector);
 	FVector S = FVector(GRID_SIZE, GRID_SIZE, 1);
@@ -29,7 +29,6 @@ UPanelSide::UPanelSide()
 	Collider->InitBoxExtent(S/2 - FVector(Margin, Margin, 0));
 	Collider->SetCollisionProfileName("Trigger");
 	Collider->SetCollisionResponseToChannel(COLLISION_PANELSIDE, ECR_Block);
-	Collider->ComponentTags.Add("PanelSideCollider");
 
 }
 

@@ -30,9 +30,9 @@ void AAttachmentAirVent::Tick(float DeltaTime) {
 
     DrawDebugBox(GetWorld(), GetActorLocation() + GetActorUpVector() * 20, FVector::OneVector, FColor::Blue, false, -1, 10);
     DrawDebugBox(GetWorld(), GetActorLocation(), FVector::OneVector, FColor::Blue, false, -1, 10);
-    if (OutputPanelSide != NULL) {
-        DrawDebugBox(GetWorld(), OutputPanelSide->Collider->GetComponentLocation(), FVector::OneVector, FColor::Blue, false, -1, 10);
-    }
+    //if (OutputPanelSide != NULL) {
+        //DrawDebugBox(GetWorld(), OutputPanelSide->Collider->GetComponentLocation(), FVector::OneVector, FColor::Blue, false, -1, 10);
+    //}
 }
 
 void AAttachmentAirVent::OnBuild(ABuildItem* Parent) {

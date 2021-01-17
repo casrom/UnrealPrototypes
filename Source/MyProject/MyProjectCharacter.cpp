@@ -1,7 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "MyProjectCharacter.h"
-#include "MyProjectProjectile.h"
+#include "Items/ItemSAC.h"
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -13,6 +13,10 @@
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
 #include "BaseBuilder/BuilderComponent.h"
 #include "Interact/InteractorComponent.h"
+#include "Inventory/InventoryComponent.h"
+#include "Inventory/ActionBarComponent.h"
+
+#include "Macros.h"
 
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
@@ -42,6 +46,9 @@ AMyProjectCharacter::AMyProjectCharacter()
 	Interactor = CreateDefaultSubobject<UInteractorComponent>(TEXT("Interactor"));
 	Interactor->SetCamera(FirstPersonCameraComponent);
 
+	Inventory = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory"));
+	
+
 	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
 	Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh1P"));
 	Mesh1P->SetOnlyOwnerSee(true);
@@ -64,7 +71,7 @@ AMyProjectCharacter::AMyProjectCharacter()
 	FP_MuzzleLocation->SetRelativeLocation(FVector(0.2f, 48.4f, -10.6f));
 
 	// Default offset from the character location for projectiles to spawn
-	GunOffset = FVector(100.0f, 0.0f, 10.0f);
+	GunOffset = FVector(50.0f, 0.0f, 10.0f);
 
 	// Note: The ProjectileClass and the skeletal mesh/anim blueprints for Mesh1P, FP_Gun, and VR_Gun 
 	// are set in the derived blueprint asset named MyCharacter to avoid direct content references in C++.
@@ -166,13 +173,18 @@ void AMyProjectCharacter::SetupPlayerInputComponent(class UInputComponent* Playe
 }
 
 void AMyProjectCharacter::OnScroll(float Value) {
-	if (Value > 0) {
-		if (Builder) Builder->NextBuildItem();
-	} 
-
-	if (Value < 0) {
-		if (Builder) Builder->PrevBuildItem();
+	if (Builder->IsActive()) {
+		if (Builder) {
+			if (Value < 0) Builder->NextBuildItem();
+			if (Value > 0) Builder->PrevBuildItem();
+		}
+	} else {
+		if (Inventory->ActionBar) {
+			if (Value < 0) Inventory->ActionBar->NextActiveItem();
+			if (Value > 0) Inventory->ActionBar->PrevActiveItem();
+		}	
 	}
+
 }
 
 void AMyProjectCharacter::OnInteract() {
@@ -195,36 +207,28 @@ void AMyProjectCharacter::DisableSimulatePhysics() {
 
 void AMyProjectCharacter::OnFire()
 {
-	if (Builder) {
+	if (Builder && Builder->bActive) {
 		Builder->Build();
+		return;
 	}
 	// try and fire a projectile
-	if (ProjectileClass != NULL)
-	{
-		//
-		//UWorld* const World = GetWorld();
-		//if (World != NULL)
-		//{
-		//	if (bUsingMotionControllers)
-		//	{
-		//		const FRotator SpawnRotation = VR_MuzzleLocation->GetComponentRotation();
-		//		const FVector SpawnLocation = VR_MuzzleLocation->GetComponentLocation();
-		//		World->SpawnActor<AMyProjectProjectile>(ProjectileClass, SpawnLocation, SpawnRotation);
-		//	}
-		//	else
-		//	{
-		//		const FRotator SpawnRotation = GetControlRotation();
-		//		// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
-		//		const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
+	if (ProjectileClass) {
 
-		//		//Set Spawn Collision Handling Override
-		//		FActorSpawnParameters ActorSpawnParams;
-		//		ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+		UWorld* const World = GetWorld();
+		if (World) {
+			FRotator SpawnRotation = GetControlRotation();
+			// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
+			const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
+			SpawnRotation.Add(5, 0, -1);
+			//DEBUGMESSAGE("%s", *SpawnRotation.ToString());
 
-		//		// spawn the projectile at the muzzle
-		//		World->SpawnActor<AMyProjectProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
-		//	}
-		//}
+			//Set Spawn Collision Handling Override
+			FActorSpawnParameters ActorSpawnParams;
+			//ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+
+			// spawn the projectile at the muzzle
+			AItemSAC* sac = World->SpawnActor<AItemSAC>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+		}
 	}
 
 	// try and play the sound if specified

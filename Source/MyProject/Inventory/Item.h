@@ -4,23 +4,56 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "../Interact/InteractableInterface.h"
+
 #include "Item.generated.h"
 
+
+USTRUCT(BlueprintType)
+struct FItemInfo {
+	GENERATED_BODY()
+	FItemInfo(): Count(1) {
+		Name = FText::FromString("Unknown Item");
+	}
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FText Name;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	//UStaticMesh* StaticVisualMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 Count;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<AItem> ItemBP;
+
+};
+
+
 UCLASS()
-class MYPROJECT_API AItem : public AActor
+class MYPROJECT_API AItem : public AActor, public IInteractableInterface
 {
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FItemInfo Info;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	class UStaticMeshComponent* VisualMesh;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	class UBoxComponent* InteractTrigger;
+
 	AItem();
 
 protected:
-	// Called when the game starts or when spawned
+
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	
+	/* Interactable */
+	virtual void OnInteract_Implementation(UObject* TriggeredObject, UObject* Interactor) override;
+	virtual FText GetDescription() override;
 
 };

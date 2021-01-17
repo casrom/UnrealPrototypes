@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Attachment.h"
-#include "Components/PointLightComponent.h"
 
 #include "AttachmentLight.generated.h"
 
@@ -24,7 +23,7 @@ public:
 
     UPanelSide* InputPanelSide;
     UPROPERTY(EditDefaultsOnly)
-    UPointLightComponent* Light;
+    class UPointLightComponent* Light;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
     float Brightness;

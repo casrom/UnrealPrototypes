@@ -9,6 +9,7 @@
 
 class APowerRedirector;
 class ABuilding;
+class UBoxComponent;
 
 UCLASS()
 class MYPROJECT_API APowerColumn : public AActor, public IInteractableInterface
@@ -60,7 +61,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	/* Interactable */
-	virtual void OnInteract_Implementation(UObject* TriggeredObject) override;
+	virtual void OnInteract_Implementation(UObject* TriggeredObject, UObject* Interactor) override;
 	virtual FText GetDescription() override;
 
 

@@ -2,6 +2,7 @@
 
 
 #include "PanelButton.h"
+#include "Components/BoxComponent.h"
 
 UPanelButton::UPanelButton()
 {
@@ -59,7 +60,7 @@ void UPanelButton::TickComponent(float DeltaTime, ELevelTick TickType, FActorCom
 }
 
 
-void UPanelButton::OnInteract_Implementation(UObject* TriggeredObject) {
+void UPanelButton::OnInteract_Implementation(UObject* TriggeredObject, UObject* Interactor) {
 	if (PressAnimation != nullptr){
 		if (!SkeletalVisualMesh->IsPlaying()) {
 			bActive = !bActive;

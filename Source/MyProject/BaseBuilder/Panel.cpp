@@ -10,6 +10,9 @@
 #include "DrawDebugHelpers.h"
 #include "GameplayTagsManager.h"
 
+
+#include "ConnectorComponent.h"
+#include "Components/BoxComponent.h"
 #include "Globals.h"
 
 // Sets default values
@@ -27,9 +30,11 @@ APanel::APanel()
 	StaticVisualMesh->SetupAttachment(RootComponent);
 
 	//OverlapCollider->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
-	//OverlapCollider->InitBoxExtent(Size/2 - FVector(Margin, Margin, 0));
+	OverlapCollider->InitBoxExtent(Size/2 - FVector(Margin, Margin, 0));
 	for (int i = 0; i < 2; i++) {
-		UPanelSide* Side = CreateDefaultSubobject<UPanelSide>(MakeUniqueObjectName(this, UPanelSide::StaticClass(), "PanelSide"));
+		FString Name = "Side";
+		Name.AppendInt(i);
+		UPanelSide* Side = CreateDefaultSubobject<UPanelSide>(FName(Name));
 		Side->SetupAttachment(RootComponent);
 		Side->SetRelativeLocation(FVector(0.0f, 0.0f, (0.5f - i) * Margin / 2));
 		Side->Panel = this;
@@ -43,39 +48,44 @@ APanel::APanel()
 
 
 	for (int i = 0; i < 12; i++) {
-		UConnectorComponent* C = CreateDefaultSubobject<UConnectorComponent>(MakeUniqueObjectName(this, UConnectorComponent::StaticClass(), "PanelConnector"));
+		FString Name = "PanelConnector";
+		Name.AppendInt(i);
+		UConnectorComponent* C = CreateDefaultSubobject<UConnectorComponent>(FName(Name));
 		C->SetupAttachment(RootComponent);
 		C->SetRelativeTransform(IndexToTransform(i));
 		ConnectionColliders.Add(C);
 		//C->RegisterComponent();
 	}
 
-	//for (int i = 0; i < 8; i++) {
-	//	UConnectorComponent* C = CreateDefaultSubobject<UConnectorComponent>(MakeUniqueObjectName(this, UConnectorComponent::StaticClass(), "AttachmentConnector"));
-	//	C->SetupAttachment(RootComponent);
-	//	C->Init(FVector(80,80,20), this, COLLISION_CONNECTOR_ATTACH, 0);
-	//	FVector Location = IndexToAttachmentLocation((i / 2)) * GRID_SIZE / 4;
-	//	FRotator Rotation = FRotator::ZeroRotator;
-	//	if (i % 2 == 0) {
-	//		Location.Z = PANEL_THICKNESS / 2;
-	//	} else {
-	//		Location.Z = -PANEL_THICKNESS / 2;
-	//		Rotation = FRotator(180, 0, 0);
-	//	}
-	//	C->SetRelativeLocationAndRotation(Location, Rotation);
-	//	C->ConnectorCollider->SetCollisionProfileName("BuildAttachment");
-	//	C->GameplayTags.AddTag(UGameplayTagsManager::Get().RequestGameplayTag("BuildItem.Attachment.M"));
-	//	AttachmentColliders.Add(C);
-	//}
+	for (int i = 0; i < 8; i++) {
+		FString Name = "AttachmentConnector";
+		Name.AppendInt(i);
+		UConnectorComponent* C = CreateDefaultSubobject<UConnectorComponent>(FName(Name));
+		C->SetupAttachment(RootComponent);
+		C->Init(FVector(80,80,20), this, COLLISION_CONNECTOR_ATTACH, 0);
+		FVector Location = IndexToAttachmentLocation((i / 2)) * GRID_SIZE / 4;
+		FRotator Rotation = FRotator::ZeroRotator;
+		if (i % 2 == 0) {
+			Location.Z = PANEL_THICKNESS / 2;
+		} else {
+			Location.Z = -PANEL_THICKNESS / 2;
+			Rotation = FRotator(180, 0, 0);
+		}
+		C->SetRelativeLocationAndRotation(Location, Rotation);
+		C->ConnectorCollider->SetCollisionProfileName("BuildAttachment");
+		C->GameplayTags.AddTag(UGameplayTagsManager::Get().RequestGameplayTag("BuildItem.Attachment.M"));
+		AttachmentColliders.Add(C);
+	}
 
 
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> StripMesh(TEXT("/Game/Blender/Panel_PowerStrip"));
+	//static ConstructorHelpers::FObjectFinder<UStaticMesh> StripMesh(TEXT("/Game/Blender/Panel_PowerStrip"));
 
 
-	PanelButtonIsVisible.Init(false, 4);
-	PanelButtons.Init(nullptr, 8);
-	PowerStrips.Init(nullptr, 8);
+	//PanelButtonIsVisible.Init(false, 4);
+	//PanelButtons.Init(nullptr, 8);
+	//PowerStrips.Init(nullptr, 8);
 
+	//Init();
 }
 
 // Called when the game starts or when spawned
@@ -83,55 +93,8 @@ void APanel::BeginPlay()
 {
 	Super::BeginPlay();
 
-
-	StaticVisualMesh->GetBodySetup()->CollisionTraceFlag = ECollisionTraceFlag::CTF_UseComplexAsSimple;
-	//Init();
-
-
-}
-
-void APanel::Init() {
-
-	for (int i = 0; i < 12; i++) {
-		UConnectorComponent* C = ConnectionColliders[i];
-		ECollisionChannel CC = IndexToCollisionChannel(i);
-		if (CC == COLLISION_CONNECTOR_WALL || bIsWall) C->Init(Size, this, CC, GRID_SIZE - 350, true);
-		else C->Init(Size, this, CC, 0, true);
-	}
-
-	for (int i = 0; i < 8; i++) {
-		bool Visible = PanelButtonIsVisible[i / 2];
-		if (Visible) {
-			UPanelButton* Button = NewObject<UPanelButton>(this, MakeUniqueObjectName(this, UPanelButton::StaticClass(), "PanelButton"));
-			Button->SetupAttachment(RootComponent);
-
-			Button->RegisterComponent();
-			PanelButtons[i] = Button;
-			FVector Location = IndexToConnectorLocation(i / 2) * GRID_SIZE/2;
-			FRotator Rotator = FRotator::ZeroRotator;
-			if (i % 2 == 0) Rotator.Pitch = 180;
-			if ((i / 2) % 2 == 0) Rotator.Yaw = 90;
-			Button->Init(Location, Rotator);
-		}
-	}
-
-	for (int i = 0; i < 8; i++) {
-		if (!bHasEnergyStrips || EnergyStripBP == nullptr || PowerStrips[7] != nullptr) break;
-		UEnergyStrip* ES = NewObject<UEnergyStrip>(RootComponent, EnergyStripBP, MakeUniqueObjectName(this, UEnergyStrip::StaticClass(), "EnergyStrip"));
-		FRotator Rotator = FRotator::ZeroRotator;
-		if (i < 4) { //Up Side
-			Rotator = FRotator(0, i * 90, 0);
-			Sides[0]->EnergyStrips[i] = ES;
-		} else { //Down Side
-			if (i % 2 == 1) Rotator = FRotator(180, -(i - 4) * 90, 0);
-			else Rotator = FRotator(180, (i - 4) * 90 + 180, 0);
-			Sides[1]->EnergyStrips[i-4] = ES;
-		}
-		ES->SetupAttachment(RootComponent);
-		ES->RegisterComponent();
-		ES->Init(Rotator);
-		PowerStrips[i] = ES;
-	}
+	if (StaticVisualMesh)
+		StaticVisualMesh->GetBodySetup()->CollisionTraceFlag = ECollisionTraceFlag::CTF_UseComplexAsSimple;
 
 	if (bIsWall) {
 		BuildItemInfo.DefaultRotator = FRotator(90, 0, 0);
@@ -140,6 +103,59 @@ void APanel::Init() {
 		BuildItemInfo.CollisionChannel = COLLISION_CONNECTOR_FLOOR;
 		BuildItemInfo.bBuildableAnywhere = true;
 	}
+
+	for (int i = 0; i < 12; i++) {
+		UConnectorComponent* C = ConnectionColliders[i];
+		ECollisionChannel CC = IndexToCollisionChannel(i);
+		if (CC == COLLISION_CONNECTOR_WALL || bIsWall) C->Init(Size, this, CC, GRID_SIZE - 300, true);
+		else C->Init(Size, this, CC, 0, true);
+	}
+}
+
+void APanel::Init() {
+
+	//for (int i = 0; i < 12; i++) {
+	//	UConnectorComponent* C = ConnectionColliders[i];
+	//	ECollisionChannel CC = IndexToCollisionChannel(i);
+	//	if (CC == COLLISION_CONNECTOR_WALL || bIsWall) C->Init(Size, this, CC, GRID_SIZE - 300, true);
+	//	else C->Init(Size, this, CC, 0, true);
+	//}
+
+	//for (int i = 0; i < 8; i++) {
+	//	bool Visible = PanelButtonIsVisible[i / 2];
+	//	if (Visible) {
+	//		UPanelButton* Button = NewObject<UPanelButton>(this, MakeUniqueObjectName(this, UPanelButton::StaticClass(), "PanelButton"));
+	//		Button->SetupAttachment(RootComponent);
+
+	//		Button->RegisterComponent();
+	//		PanelButtons[i] = Button;
+	//		FVector Location = IndexToConnectorLocation(i / 2) * GRID_SIZE/2;
+	//		FRotator Rotator = FRotator::ZeroRotator;
+	//		if (i % 2 == 0) Rotator.Pitch = 180;
+	//		if ((i / 2) % 2 == 0) Rotator.Yaw = 90;
+	//		Button->Init(Location, Rotator);
+	//	}
+	//}
+
+	//for (int i = 0; i < 8; i++) {
+	//	if (!bHasEnergyStrips || EnergyStripBP == nullptr || PowerStrips[7] != nullptr) break;
+	//	UEnergyStrip* ES = NewObject<UEnergyStrip>(RootComponent, EnergyStripBP, MakeUniqueObjectName(this, UEnergyStrip::StaticClass(), "EnergyStrip"));
+	//	FRotator Rotator = FRotator::ZeroRotator;
+	//	if (i < 4) { //Up Side
+	//		Rotator = FRotator(0, i * 90, 0);
+	//		Sides[0]->EnergyStrips[i] = ES;
+	//	} else { //Down Side
+	//		if (i % 2 == 1) Rotator = FRotator(180, -(i - 4) * 90, 0);
+	//		else Rotator = FRotator(180, (i - 4) * 90 + 180, 0);
+	//		Sides[1]->EnergyStrips[i-4] = ES;
+	//	}
+	//	ES->SetupAttachment(RootComponent);
+	//	ES->RegisterComponent();
+	//	ES->Init(Rotator);
+	//	PowerStrips[i] = ES;
+	//}
+
+
 }
 
 // Called every frame
@@ -362,6 +378,10 @@ void APanel::UpdateFlowEfficiency(float NewFlowEfficiency) {
 }
 
 void APanel::RegisterSpaceChunks(USpaceChunk* SCA, USpaceChunk* SCB) {
+	if (!(Sides[0] && Sides[1])) {
+		DEBUGMESSAGE("Error: Sides Nulled! unable to register space chunks");
+		return;
+	}
 	Sides[1]->SpaceChunk = SCA;
 	Sides[0]->SpaceChunk = SCB;
 

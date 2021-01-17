@@ -11,6 +11,7 @@
 class APanel;
 class ABuildItem;
 class AAttachment;
+class UBuilderUI;
 
 USTRUCT(BlueprintType)
 struct FBuilderSettings {
@@ -36,6 +37,11 @@ class MYPROJECT_API UBuilderComponent : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	UBuilderComponent();
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UBuilderUI> BuilderUIBP;
+	UPROPERTY()
+	UBuilderUI* BuilderUI;
 
 	UPROPERTY(editAnywhere)
 	bool bActive;
@@ -64,7 +70,7 @@ public:
 	UPROPERTY(EditAnywhere)
 	UMaterial* BluePrintMaterial;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray< TSubclassOf<ABuildItem> > BuildItemsBP;
 	UPROPERTY()
 	TArray<ABuildItem*> BuildItems;

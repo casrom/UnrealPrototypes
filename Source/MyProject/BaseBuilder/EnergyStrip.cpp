@@ -53,6 +53,7 @@ void UEnergyStrip::Init(FRotator Rotator) {
 		StaticVisualMesh->SetRelativeRotation(Rotator);
 		StaticVisualMesh->SetRelativeLocation(FVector::ZeroVector);
 		StaticVisualMesh->RegisterComponent();
+		StaticVisualMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		MaterialInstance = StaticVisualMesh->CreateDynamicMaterialInstance(0);
 		FHashedMaterialParameterInfo Info = FHashedMaterialParameterInfo("BaseColor");
 		MaterialInstance->GetVectorParameterValue(Info, ColorDefault);

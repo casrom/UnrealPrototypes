@@ -5,12 +5,18 @@
 #include "Animation/AnimInstance.h"
 #include "../../Macros.h"
 #include "../Panel.h"
+#include "Components/BoxComponent.h"
 
 AAttachmentDoor::AAttachmentDoor() {
 
     SkeletalVisualMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
     SkeletalVisualMesh->SetCollisionProfileName("BlockAll");
     SkeletalVisualMesh->SetupAttachment(RootComponent);
+
+    InteractTrigger = CreateDefaultSubobject<UBoxComponent>(TEXT("InteractTrigger"));
+    InteractTrigger->SetCollisionProfileName("NoCollision");
+    InteractTrigger->SetupAttachment(RootComponent);
+    InteractTrigger->SetRelativeLocation(FVector::ZeroVector);
 }
 
 void AAttachmentDoor::OnBuild(ABuildItem* Parent) {
@@ -27,7 +33,7 @@ void AAttachmentDoor::OnBuild(ABuildItem* Parent) {
     //UAnimInstance* AnimInstance = SkeletalVisualMesh->GetAnimInstance();
 }
 
-void AAttachmentDoor::OnInteract_Implementation(UObject* TriggeredObject) {
+void AAttachmentDoor::OnInteract_Implementation(UObject* TriggeredObject, UObject* Interactor) {
     //DEBUGMESSAGE("Interact %x\n", bOpen);
     if (ParentPanel != nullptr) {
         if (bOpen) ParentPanel->UpdateFlowEfficiency(0);

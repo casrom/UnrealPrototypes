@@ -21,7 +21,7 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	USkeletalMeshComponent* SkeletalVisualMesh;
 	UPROPERTY(EditDefaultsOnly)
-	UBoxComponent* InteractCollider;
+	class UBoxComponent* InteractCollider;
 	UPROPERTY(EditDefaultsOnly)
 	UAnimationAsset* PressAnimation;
 
@@ -40,7 +40,7 @@ public:
 	void Init(FVector InRelativeLocation, FRotator InRelativeRotator);
 
 	/* Interactable */
-	virtual void OnInteract_Implementation(UObject* TriggeredObject) override;
+	virtual void OnInteract_Implementation(UObject* TriggeredObject, UObject* Interactor) override;
 	virtual FText GetDescription() override;
 		
 };

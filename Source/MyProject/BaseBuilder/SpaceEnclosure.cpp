@@ -5,7 +5,6 @@
 #include "../Macros.h"
 #include "DrawDebugHelpers.h"
 #include "Panel.h"
-#include "SpaceChunk.h"
 
 // Sets default values for this component's properties
 USpaceEnclosure::USpaceEnclosure()

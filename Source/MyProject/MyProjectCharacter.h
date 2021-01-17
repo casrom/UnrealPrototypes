@@ -7,7 +7,9 @@
 #include "MyProjectCharacter.generated.h"
 
 class UInputComponent;
-class UMainUI;
+class UBuilderComponent;
+class UInteractorComponent;
+class UInventoryComponent;
 
 UCLASS(config=Game)
 class AMyProjectCharacter : public ACharacter
@@ -51,10 +53,13 @@ public:
     virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Mesh)
-		class UBuilderComponent* Builder;
+	class UBuilderComponent* Builder;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UInventoryComponent* Inventory;
 
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
-		class UInteractorComponent* Interactor;
+	class UInteractorComponent* Interactor;
 
 
 protected:
@@ -75,7 +80,7 @@ public:
 
 	/** Projectile class to spawn */
 	UPROPERTY(EditDefaultsOnly, Category=Projectile)
-	TSubclassOf<class AMyProjectProjectile> ProjectileClass;
+	TSubclassOf<class AItemSAC> ProjectileClass;
 
 	/** Sound to play each time we fire */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
